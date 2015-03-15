@@ -23,7 +23,7 @@ after setup_actions => sub {
         if ( $type eq 'Path' ) {
             $self->log->debug("Reorder Path actions...") if $self->debug;
 
-#            warn Dumper($dt);
+            # warn Dumper($dt);
 
             for my $actions ( values %{ $dt->_paths } ) {
                 croak "Not array" unless ref $actions eq 'ARRAY';
@@ -32,20 +32,20 @@ after setup_actions => sub {
                     = [ sort { $self->compare_actions( $a, $b ) } @{$actions} ];
             }
 
-#            warn Dumper($dt);
+            # warn Dumper($dt);
         }
         elsif ( $type eq 'Chained' ) {
             $self->log->debug("Reorder Chained actions...") if $self->debug;
 
-#            warn Dumper( $dt->_children_of );
+            # warn Dumper( $dt->_children_of );
 
-            for my $child ( values %{ $dt->_children_of } ) {
-                croak "Not hash" unless ref $child eq 'HASH';
+            for my $paths ( values %{ $dt->_children_of } ) {
+                croak "Not hash" unless ref $paths eq 'HASH';
 
-                for my $actions ( values %{$child} ) {
+                for my $actions ( values %{$paths} ) {
                     croak "Not array" unless ref $actions eq 'ARRAY';
 
-                    #<<<
+                    #<<< no tidy
                     my @zero_actions =
                         sort { $self->compare_actions( $a, $b ) }
                         grep {
@@ -69,10 +69,11 @@ after setup_actions => sub {
                         reverse(@zero_actions),
                         reverse(@undef_actions),
                     ];
+                    #>>>
                 }
             }
 
-#            warn Dumper( $dt->_children_of );
+            # warn Dumper( $dt->_children_of );
         }
         elsif ( $self->debug ) {
             $self->log->debug("Don't know how to reorder $type actions...");
@@ -84,7 +85,7 @@ after setup_actions => sub {
 # Compare rules to future compare sort order.
 # HASH with rules:
 # (
-# RULE => DEFINITION
+#   RULE => DEFINITION
 # )
 # RULE := string
 # DEFINITION:= -1 | 0 | 1 | coderef
@@ -106,7 +107,7 @@ sub _compare_rules {
 
             my ($val) = @{ $action->attributes->{Args} || [] };
 
-            return looks_like_number($val) ? $val : ~0;
+            return looks_like_number($val) ? $val : ( ~0 >> 4 );
         },
         Scheme   => -1,
         Method   => -1,

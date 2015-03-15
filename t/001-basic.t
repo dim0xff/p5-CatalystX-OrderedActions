@@ -54,56 +54,68 @@ package MyApp::Controller::Root {
 
 
     # Chained
-    sub base : Chained('/') PathPart('chain') CaptureArgs(0) { }
+    sub base      :        Chained('/')    PathPart('chain') CaptureArgs(0) { }
+    sub chain_any :        Chained('base') PathPart('')      CaptureArgs(0) { }
+    sub chain_del : DELETE Chained('base') PathPart('')      CaptureArgs(0) { }
 
-    sub chained_any_get : GET Chained('base') PathPart('') Args {
+
+
+    sub chained_any_get : GET Chained('chain_any') PathPart('') Args {
         $_[1]->res->body('chained any get');
     }
 
-    sub chained_any1 : Chained('base') PathPart('') Args {
+    sub chained_any1 : Chained('chain_any') PathPart('') Args {
         $_[1]->res->body('chained any first');
     }
 
-    sub chained_any2 : Chained('base') PathPart('') Args {
-        $_[1]->res->body('chained any second');
-    }
-
-    sub chained_any_post : POST Chained('base') PathPart('') Args {
-        $_[1]->res->body('chained any post');
-    }
 
 
-    sub chained_zero_get : GET Chained('base') PathPart('') Args(0) {
+    sub chained_zero_get : GET Chained('chain_any') PathPart('') Args(0) {
         $_[1]->res->body('chained zero get');
     }
 
-    sub chained_zero1 : Chained('base') PathPart('') Args(0) {
+    sub chained_zero1 : Chained('chain_any') PathPart('') Args(0) {
         $_[1]->res->body('chained zero first');
     }
 
-    sub chained_zero2 : Chained('base') PathPart('') Args(0) {
+    sub chained_zero2 : Chained('chain_any') PathPart('') Args(0) {
         $_[1]->res->body('chained zero second');
     }
 
-    sub chained_zero_post : POST Chained('base') PathPart('') Args(0) {
+    sub chained_zero_post : POST Chained('chain_any') PathPart('') Args(0) {
         $_[1]->res->body('chained zero post');
     }
 
 
-    sub chained_one_get : GET Chained('base') PathPart('') Args(1) {
+
+    sub chained_one_get : GET Chained('chain_any') PathPart('') Args(1) {
         $_[1]->res->body('chained one get');
     }
 
-    sub chained_one1 : Chained('base') PathPart('') Args(1) {
+    sub chained_one1 : Chained('chain_any') PathPart('') Args(1) {
         $_[1]->res->body('chained one first');
     }
 
-    sub chained_one2 : Chained('base') PathPart('') Args(1) {
+    sub chained_one2 : Chained('chain_any') PathPart('') Args(1) {
         $_[1]->res->body('chained one second');
     }
 
-    sub chained_one_post : POST Chained('base') PathPart('') Args(1) {
+    sub chained_one_post : POST Chained('chain_any') PathPart('') Args(1) {
         $_[1]->res->body('chained one post');
+    }
+
+
+
+    sub chained_any2 : Chained('chain_any') PathPart('') Args {
+        $_[1]->res->body('chained any second');
+    }
+
+    sub chained_any_post : POST Chained('chain_any') PathPart('') Args {
+        $_[1]->res->body('chained any post');
+    }
+
+    sub chained_any_del : Chained('chain_del') PathPart('') Args {
+        $_[1]->res->body('chained any delete');
     }
 };
 
@@ -132,6 +144,7 @@ subtest 'Chained' => sub {
     is( request( GET '/chain/1/2' )->content,  'chained any get' );
     is( request( POST '/chain/1/2' )->content, 'chained any post' );
     is( request( PUT '/chain/1/2' )->content,  'chained any second' );
+    is( request( DELETE '/chain/1/2' )->content,  'chained any delete' );
 
     is( request( GET '/chain/1' )->content,  'chained one get' );
     is( request( POST '/chain/1' )->content, 'chained one post' );
