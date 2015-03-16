@@ -49,25 +49,37 @@ after setup_actions => sub {
                     my @zero_actions =
                         sort { $self->compare_actions( $a, $b ) }
                         grep {
-                            0 == ( ( $_->attributes->{Args} || [] )->[0] // -1 )
+                            0 == (
+                                exists $_->attributes->{Args}
+                                    ? ( $_->attributes->{Args} || [] )->[0] // -1
+                                    : -1
+                            )
                         } @{$actions};
 
                     my @undef_actions =
                         sort { $self->compare_actions( $a, $b ) }
                         grep {
-                            not defined( ( $_->attributes->{Args} || [] )->[0] )
+                            not defined(
+                                exists $_->attributes->{Args}
+                                    ? ( $_->attributes->{Args} || [] )->[0]
+                                    : undef
+                            )
                         } reverse @{$actions};
 
                     my @args_actions =
                         sort { $self->compare_actions( $a, $b ) }
                         grep {
-                            0 < ( ( $_->attributes->{Args} || [] )->[0] // -1 )
+                            0 < (
+                                exists $_->attributes->{Args}
+                                    ? ( $_->attributes->{Args} || [] )->[0] // -1
+                                    : -1
+                            )
                         } reverse @{$actions};
 
                     $actions = [
                         reverse(@args_actions),
                         reverse(@zero_actions),
-                        reverse(@undef_actions),
+                        reverse @undef_actions,
                     ];
                     #>>>
                 }
@@ -100,7 +112,7 @@ after setup_actions => sub {
 # result of calling DEFINITION->($self)
 
 sub _compare_rules {
-    return (
+    my %rules = (
         '*'  => 0,
         Args => sub {
             my $action = shift;
@@ -114,16 +126,22 @@ sub _compare_rules {
         Consumes => -1,
 
     );
+    $rules{CaptureArgs} = $rules{Args};
+
+    return %rules;
 }
 
 # Rules keys. Order of keys is equal to compare order checks
 sub _action_compare_keys {
     my ( $self, $action ) = @_;
-    my @known = ( 'Args', 'Scheme', 'Method', 'Consumes' );
+    my @known = ( 'Args', 'CaptureArgs', 'Scheme', 'Method', 'Consumes' );
 
     my @available;
     for my $key (@known) {
-        push( @available, $key ) if exists $action->attributes->{$key};
+        next unless exists $action->attributes->{$key};
+        push( @available, $key );
+
+        shift(@available) if $key eq 'CaptureArgs' && $available[0] eq 'Args';
     }
 
     return @available;

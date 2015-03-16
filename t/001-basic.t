@@ -141,10 +141,10 @@ subtest 'Path' => sub {
 
 
 subtest 'Chained' => sub {
-    is( request( GET '/chain/1/2' )->content,  'chained any get' );
-    is( request( POST '/chain/1/2' )->content, 'chained any post' );
-    is( request( PUT '/chain/1/2' )->content,  'chained any second' );
-    is( request( DELETE '/chain/1/2' )->content,  'chained any delete' );
+    is( request( GET '/chain/1/2' )->content,    'chained any get' );
+    is( request( POST '/chain/1/2' )->content,   'chained any post' );
+    is( request( PUT '/chain/1/2' )->content,    'chained any second' );
+    is( request( DELETE '/chain/1/2' )->content, 'chained any delete' );
 
     is( request( GET '/chain/1' )->content,  'chained one get' );
     is( request( POST '/chain/1' )->content, 'chained one post' );
