@@ -11,7 +11,7 @@ use List::MoreUtils 'uniq';
 
 use Data::Dumper;
 
-after setup_actions => sub {
+after setup_finalize => sub {
     my $self = shift;
 
     my $ns = ref $self;
