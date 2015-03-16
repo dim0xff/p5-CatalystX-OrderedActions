@@ -1,6 +1,6 @@
 package CatalystX::OrderedActions;
 
-# ABSTRACT: role for L<Catalyst> controller to "correct" actions order
+# ABSTRACT: role for L<Catalyst> controller to "correct" actions matching order
 
 use Moose::Role;
 use namespace::autoclean;
