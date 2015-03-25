@@ -78,8 +78,8 @@ after setup_finalize => sub {
 
                     $actions = [
                         reverse(@args_actions),
-                        reverse(@zero_actions),
-                        reverse @undef_actions,
+                               (@zero_actions),
+                        reverse(@undef_actions),
                     ];
                     #>>>
                 }

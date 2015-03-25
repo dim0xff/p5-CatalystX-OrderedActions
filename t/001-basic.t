@@ -90,9 +90,15 @@ package MyApp::Controller::Root {
 
 
 
-    # BUT!
-    # Chained actions with Args(0) should be declared in __REVERSED__ order:
-    # most greedy - at the end
+    # Now (since 5.90085) too...
+
+    sub chained_zero : Chained('chain_any') PathPart('') Args(0) {
+        $_[1]->res->body('chained zero #1');
+    }
+
+    sub chained_zero1 : Chained('chain_any') PathPart('') Args(0) {
+        $_[1]->res->body('chained zero');
+    }
 
     sub chained_zero_post : POST Chained('chain_any') PathPart('') Args(0) {
         $_[1]->res->body('chained zero post');
@@ -102,15 +108,7 @@ package MyApp::Controller::Root {
         $_[1]->res->body('chained zero get');
     }
 
-    # Also you can't override Chained action with Args(0)
-    sub chained_zero1 : Chained('chain_any') PathPart('') Args(0) {
-        $_[1]->res->body('chained zero');
-    }
 
-    sub chained_zero : Chained('chain_any') PathPart('') Args(0) {
-        # XXX never executed
-        $_[1]->res->body('chained zero #1');
-    }
 
 
     # XXX
