@@ -1,0 +1,64 @@
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+CatalystX::OrderedActions - "correct" actions matching order
+
+=head1 SYNOPSIS
+
+    package MyApp;
+    use Catalyst qw(+CatalystX::OrderedActions);
+
+
+    package MyApp::Controller::Resource;
+
+    use base qw(Catalyst::Controller);
+    use Moose;
+    with 'CatalystX::TraitFor::Controller::OrderedActions';
+
+    sub show    : GET     Path('/res') Args(1) { ... }
+    sub modify  :         Path('/res') Args(1) { ... }
+    sub options : OPTIONS Path('/res') Args(1) { ... }
+
+=head1 DESCRIPTION
+
+This role tries to add actions matching order based on priorities into
+L<Path|Catalyst::DispatchType::Path>
+and L<Chained|Catalyst::DispatchType::Chained> dispatch types.
+
+=head1 MATCHING PRIORITY
+
+Path and Chained actions should respect addition matching logic.
+
+Dispatcher should match path to action with some priority (matching order).
+
+Each matching order position should depends on Args and fact of existing addition
+matching (in group, like SQL ORDER BY by several fields).
+
+=head2 Path
+
+...
+
+=head2 Chained
+
+...
+
+=head1 SEE ALSO
+
+For discussion you could refer to github pull request
+L<#87|https://github.com/perl-catalyst/catalyst-runtime/pull/87>.
+
+=head1 AUTHOR
+
+Dmitry "dim0xff" Latin <dim0xff@gmail.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2015 by Dmitry Latin.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
