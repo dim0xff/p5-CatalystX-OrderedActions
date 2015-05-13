@@ -1,6 +1,6 @@
 package CatalystX::OrderedActions;
 
-# ABSTRACT: role for L<Catalyst> controller to "correct" actions matching order
+# ABSTRACT: "correct" actions matching order
 
 use Moose::Role;
 use namespace::autoclean;
@@ -46,26 +46,6 @@ after setup_finalize => sub {
                     croak "Not array" unless ref $actions eq 'ARRAY';
 
                     #<<< no tidy
-                    my @zero_actions =
-                        sort { $self->compare_actions( $a, $b ) }
-                        grep {
-                            0 == (
-                                exists $_->attributes->{Args}
-                                    ? ( $_->attributes->{Args} || [] )->[0] // -1
-                                    : -1
-                            )
-                        } @{$actions};
-
-                    my @undef_actions =
-                        sort { $self->compare_actions( $a, $b ) }
-                        grep {
-                            not defined(
-                                exists $_->attributes->{Args}
-                                    ? ( $_->attributes->{Args} || [] )->[0]
-                                    : undef
-                            )
-                        } reverse @{$actions};
-
                     my @args_actions =
                         sort { $self->compare_actions( $a, $b ) }
                         grep {
@@ -76,10 +56,41 @@ after setup_finalize => sub {
                             )
                         } reverse @{$actions};
 
+
+                    my @zero_actions =
+                        sort { $self->compare_actions( $a, $b ) }
+                        grep {
+                            0 == (
+                                exists $_->attributes->{Args}
+                                    ? ( $_->attributes->{Args} || [] )->[0] // -1
+                                    : -1
+                            )
+                        } @{$actions};
+
+
+                    my @undef_actions =
+                        sort { $self->compare_actions( $a, $b ) }
+                        grep {
+                            not exists $_->attributes->{CaptureArgs}
+                            and not defined(
+                                exists $_->attributes->{Args}
+                                    ? ( $_->attributes->{Args} || [] )->[0]
+                                    : undef
+                            )
+                        } reverse @{$actions};
+
+
+                    my @chained_actions =
+                        sort { $self->compare_actions( $a, $b ) }
+                        grep { exists $_->attributes->{CaptureArgs} }
+                        reverse @{$actions};
+
+
                     $actions = [
                         reverse(@args_actions),
                                (@zero_actions),
                         reverse(@undef_actions),
+                        reverse(@chained_actions),
                     ];
                     #>>>
                 }
@@ -112,32 +123,57 @@ after setup_finalize => sub {
 # result of calling DEFINITION->($self)
 
 sub _compare_rules {
-    my %rules = (
+    my %rules;
+
+    %rules = (
         '*'  => 0,
         Args => sub {
             my $action = shift;
 
-            my ($val) = @{ $action->attributes->{Args} || [] };
+            my $num = $action->number_of_args;
+            $num = looks_like_number($num) ? $num : ( ~0 >> 4 );
 
-            return looks_like_number($val) ? $val : ( ~0 >> 4 );
+            if ( $num && $action->number_of_args_constraints ) {
+                $num /= 2;
+            }
+
+            return $num;
+        },
+        CaptureArgs => sub {
+            my $action = shift;
+
+            # If CaptureArgs doesn't exists, then it must be the last chain
+            return $rules{Args}->($action)
+                unless exists $action->attributes->{CaptureArgs};
+
+            my $num = $action->number_of_captures;
+            $num = looks_like_number($num) ? $num : ( ~0 >> 4 );
+
+            if ( $num && $action->number_of_captures_constraints ) {
+                $num *= 2;
+            }
+
+            # ++ need when CaptureArgs == 0
+            return ++$num;
         },
         Scheme   => -1,
         Method   => -1,
         Consumes => -1,
-
     );
-    $rules{CaptureArgs} = $rules{Args};
 
     return %rules;
+}
+
+sub _availabe_rules {
+    return ( 'Args', 'CaptureArgs', 'Scheme', 'Method', 'Consumes' );
 }
 
 # Rules keys. Order of keys is equal to compare order checks
 sub _action_compare_keys {
     my ( $self, $action ) = @_;
-    my @known = ( 'Args', 'CaptureArgs', 'Scheme', 'Method', 'Consumes' );
 
     my @available;
-    for my $key (@known) {
+    for my $key ( $self->_availabe_rules ) {
         next unless exists $action->attributes->{$key};
         push( @available, $key );
 
