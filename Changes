@@ -1,6 +1,5 @@
-{{$NEXT}}
-    Here is start #2
+0.0.2     2015-05-14 01:23:20+03:00 Europe/Moscow
+    - Respect Catalyst 5.90090 arg constraints feature
 
-
-{{$NEXT}}
-    Here is start
+0.0.1     2015-03-25 23:01:31+03:00 Europe/Moscow
+    - First release
